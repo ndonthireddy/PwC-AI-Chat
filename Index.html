@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>K4B AI Chat Response Preview</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #F5F5F0;
+    color: #1A1A1A;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 300px;
+    min-width: 300px;
+    background: #1A1A1A;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  .sidebar-header { padding: 24px 20px 16px; border-bottom: 1px solid #333; }
+  .sidebar-header h1 { font-size: 15px; font-weight: 600; color: #FFF; }
+  .sidebar-header p { font-size: 12px; color: #888; margin-top: 4px; }
+
+  .sidebar-nav {
+    flex: 1; overflow-y: auto; padding: 12px 8px;
+    scrollbar-width: thin; scrollbar-color: #444 transparent;
+  }
+  .sidebar-nav::-webkit-scrollbar { width: 4px; }
+  .sidebar-nav::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+
+  .nav-cat {
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.8px; color: #777; padding: 14px 12px 6px; user-select: none;
+  }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px; border-radius: 8px; font-size: 13px;
+    color: #A0A0A0; cursor: pointer; transition: all 0.15s; user-select: none;
+  }
+  .nav-item:hover { background: #2A2A2A; color: #CCC; }
+  .nav-item.active { background: #2A2A2A; color: #FFF; }
+
+  .nav-item .n {
+    font-size: 10px; font-weight: 600; color: #FF6B00;
+    min-width: 22px; text-align: right; flex-shrink: 0; opacity: 0.8;
+  }
+
+  .sidebar-footer { padding: 16px 20px; border-top: 1px solid #333; font-size: 11px; color: #555; }
+
+  /* MAIN */
+  .main { flex: 1; display: flex; flex-direction: column; height: 100vh; }
+
+  .top-bar {
+    padding: 14px 32px; background: #FFF; border-bottom: 1px solid #E8E5E0;
+    display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+  }
+  .top-bar h2 { font-size: 15px; font-weight: 600; }
+  .top-bar .sub { font-size: 12px; color: #888; margin-top: 2px; }
+
+  .top-bar .nav-btns { display: flex; gap: 6px; }
+  .top-bar button {
+    background: none; border: 1px solid #E0E0E0; border-radius: 8px;
+    padding: 5px 14px; font-size: 13px; font-family: inherit;
+    color: #888; cursor: pointer; transition: all 0.15s;
+  }
+  .top-bar button:hover { border-color: #CCC; color: #333; }
+  .top-bar button:disabled { opacity: 0.3; cursor: default; }
+
+  /* CHAT AREA */
+  .chat-wrap {
+    flex: 1; overflow-y: auto; padding: 32px; background: #FFF;
+    scroll-behavior: smooth;
+  }
+  .chat-wrap::-webkit-scrollbar { width: 6px; }
+  .chat-wrap::-webkit-scrollbar-thumb { background: #DDD; border-radius: 4px; }
+
+  .chat { max-width: 640px; margin: 0 auto; }
+
+  .tag {
+    display: inline-block; font-size: 10px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    color: #FF6B00; background: #FFF5EB; padding: 3px 10px;
+    border-radius: 5px; margin-bottom: 20px;
+  }
+
+  /* USER */
+  .u { display: flex; justify-content: flex-end; margin-bottom: 20px; }
+  .u span {
+    background: #F0EDE8; padding: 10px 16px; border-radius: 16px 16px 4px 16px;
+    font-size: 14px; max-width: 480px; line-height: 1.5;
+  }
+
+  /* AI */
+  .ai { display: flex; gap: 12px; margin-bottom: 24px; align-items: flex-start; }
+
+  .av {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: linear-gradient(135deg, #FF6B00, #FF9F40);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; font-size: 13px; color: white;
+  }
+
+  /* THE KEY PART: no background, no border, no nothing */
+  .ai-text {
+    font-size: 14px;
+    line-height: 1.8;
+    color: #1A1A1A;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    max-width: 580px;
+    padding-top: 4px;
+  }
+
+  .ai-text strong { font-weight: 600; }
+  .ai-text em { font-style: italic; color: #999; }
+  .ai-text a { color: #FF6B00; text-decoration: none; }
+  .ai-text a:hover { text-decoration: underline; }
+
+  .empty {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; height: 100%; color: #BBB; gap: 8px;
+  }
+  .empty .ic { font-size: 36px; opacity: 0.4; }
+  .empty p { font-size: 14px; }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sidebar-header">
+    <h1>K4B AI Responses</h1>
+    <p>Text-only chat preview</p>
+  </div>
+  <nav class="sidebar-nav" id="nav"></nav>
+  <div class="sidebar-footer">57 scenarios · Pure text output</div>
+</div>
+
+<div class="main">
+  <div class="top-bar">
+    <div>
+      <h2 id="hTitle">Select a scenario</h2>
+      <div class="sub" id="hSub">Click any item in the sidebar</div>
+    </div>
+    <div class="nav-btns">
+      <button id="pBtn" onclick="go(-1)" disabled>← Prev</button>
+      <button id="nBtn" onclick="go(1)">Next →</button>
+    </div>
+  </div>
+  <div class="chat-wrap" id="cw">
+    <div class="empty"><div class="ic">💬</div><p>Select a response to preview</p></div>
+  </div>
+</div>
+
+<script>
+const D=[
+
+// ─── GREETING ───
+{c:"Greeting",id:"1a",t:"Self-booking (first time)",u:null,a:
+`Hi Alex 👋
+
+Where are you headed for your business trip? Give me a destination and dates and I'll take it from there.`},
+
+{c:"Greeting",id:"1b",t:"Self-booking (returning)",u:null,a:
+`Hi Alex 👋 Got another trip in the works?
+
+Tell me where and when you're going and I'll help you get it sorted.`},
+
+{c:"Greeting",id:"1c",t:"Arranger / EA",u:null,a:
+`Hi Sarah 👋
+
+You're searching on behalf of **Alex Morgan**.
+
+Tell me where and when Alex is going and I'll help you plan the trip.`},
+
+{c:"Greeting",id:"1d",t:"Traveler says hey",u:"Hey",a:
+`Hi Alex 👋 Where are you headed next? Give me the destination and dates and I'll take it from there.`},
+
+{c:"Greeting",id:"1e",t:"With capability overview",u:null,a:
+`Hi Alex 👋
+
+Where are you headed for your business trip?
+
+Here's how I can help:
+
+**Full-service planning:** Give me your meeting details (dates, cities) and I'll curate flights, hotels, and transfers.
+
+**Preference-aware search:** I'll optimize results based on your airline, hotel, and cabin preferences.
+
+**Arranger mode:** Let me know if you're booking for a colleague and I'll use their profile.`},
+
+// ─── CLARIFICATION ───
+{c:"Clarification",id:"2a",t:"Missing dates",u:"I need to go to DC",a:
+`Got it, Washington D.C. What are your travel dates?`},
+
+{c:"Clarification",id:"2b",t:"One date provided",u:"I need to fly to DC on Feb 11",a:
+`Got it, flying to D.C. on Feb 11. Is this one-way, or do you have a return date?`},
+
+{c:"Clarification",id:"2c",t:"Ambiguous dates",u:"I need to go to Chicago sometime mid-February",a:
+`When you say "mid-February," do you have specific dates in mind? I need exact dates to pull real availability.`},
+
+{c:"Clarification",id:"2d",t:"Multiple offices",u:"I need a hotel in DC for Feb 11-13",a:
+`There are two offices in Washington D.C.:
+
+1. **D.C. Downtown** — 1000 Wilson Blvd
+2. **Rosslyn Campus** — 1700 N Moore St, Arlington
+
+Which office is your meeting at? I'll search for hotels nearby.`},
+
+{c:"Clarification",id:"2e",t:"Multi-intent",u:"I need to go to New York next week and Boston the week after",a:
+`Just to make sure I plan this correctly:
+
+Are you looking to book one trip (New York then continuing to Boston), or two separate trips?
+
+Reply 1 for one multi-city trip, or 2 for two separate trips.`},
+
+{c:"Clarification",id:"2f",t:"Ambiguous selection",u:"I'll take the cheaper one",a:
+`Just to confirm, do you mean:
+
+1. JetBlue, 6:00 am departure ($252)
+2. Delta, 5:40 pm departure ($332)
+
+Reply 1 or 2.`},
+
+{c:"Clarification",id:"2g",t:"Confirming before search",u:"DC Feb 11-13, flight hotel and ground transfer",a:
+`Creating a **Washington D.C. trip** for you:
+
+Boston → Washington D.C., Feb 11 – 13
+Flight + Hotel + Ground transfer
+
+Searching now...`},
+
+// ─── LOADING ───
+{c:"Loading",id:"3a",t:"Flight search",u:null,a:
+`_Analyzing your travel plan..._
+_Your preferred airline is Delta..._
+_You avoid Southwest..._
+_Looks like you recently booked Main Cabin fares..._
+_Most of your domestic flights are nonstops..._
+_Finalizing options..._`},
+
+{c:"Loading",id:"3b",t:"Hotel search",u:null,a:
+`_Looking for hotels near the D.C. Downtown Office for Feb 11 – 13..._
+_Your preferred hotel chain is Marriott..._
+_Checking corporate and negotiated rates..._
+_Applying policy limits..._
+_Finalizing options..._`},
+
+{c:"Loading",id:"3c",t:"Full trip search",u:null,a:
+`_Creating your D.C. trip..._
+_Applying company policy and your preferences..._
+_Searching flights, hotels, and ground transfers..._`},
+
+{c:"Loading",id:"3d",t:"Reusing past trip (arranger)",u:"Book the same as Alex's last DC trip but for March 5-7",a:
+`_Pulling up the outbound flight from Alex's last D.C. trip..._
+_Pulling up the inbound flight from Alex's last D.C. trip..._
+_Pulling up the hotel information from Alex's last D.C. trip..._
+_Checking availability for the new dates..._`},
+
+// ─── FLIGHT RESULTS ───
+{c:"Flight Results",id:"4a",t:"Outbound (3 options)",u:"BOS to DCA, Feb 11-13, flights and hotel",a:
+`Here are outbound flights for your D.C. trip. I've filtered to nonstop, in-policy options and sorted by your preference for Delta and past bookings on this route.
+
+Step 1: Select the outbound flight (BOS → DCA Tue, Feb 11)
+
+1. **$317**
+AA2536, American Airlines, Main Cabin
+3:35 pm – 4:59 pm, nonstop, 1h 24m
+✈️ Booked in Jan 2025
+✅ In policy
+
+2. **$345**
+DL2890, Delta, Main Cabin
+5:40 pm – 7:12 pm, nonstop, 1h 32m
+💰 Lowest price
+🧡 Preferred airline
+✅ In policy
+
+3. **$477**
+B6248, JetBlue, Blue
+6:00 am – 7:35 am, nonstop, 1h 35m
+🌱 26% less CO₂
+✅ In policy
+
+Does one of these look right? Select a flight, or let me know what to change.`},
+
+{c:"Flight Results",id:"4b",t:"Inbound (after outbound)",u:"2",a:
+`✅ Added. The outbound Delta flight is in your D.C. trip.
+
+Step 2: Select the inbound flight (DCA → BOS Thu, Feb 13)
+
+1. **$317**
+AA2120, American Airlines, Main Cabin
+2:30 pm – 3:41 pm, nonstop, 1h 11m
+✈️ Booked in Jan 2025
+✅ In policy
+
+2. **$310**
+DL3300, Delta, Main Cabin
+4:15 pm – 5:30 pm, nonstop, 1h 15m
+💰 Split ticket
+✅ In policy
+
+_*Split ticket: combining two one-way fares for a better price. We'll manage both bookings for you._
+
+3. **$477**
+AA4501, American Airlines, Main Cabin
+7:00 pm – 8:15 pm, nonstop, 1h 15m
+✅ In policy
+
+Does one of these look right? Select a flight, or let me know what to change.`},
+
+{c:"Flight Results",id:"4c",t:"5 options (expanded)",u:null,a:
+`I've pulled 5 nonstop options for this route, all in policy. Your previous booking and preferred airline are flagged.
+
+Step 1: Select the outbound flight (BOS → DCA Tue, Feb 11)
+
+1. **$317**
+AA2536, American Airlines, Main Cabin
+3:35 pm – 4:59 pm, nonstop, 1h 24m
+✈️ Booked in Jan 2025
+✅ In policy
+
+2. **$345**
+DL2890, Delta, Main Cabin
+5:40 pm – 7:12 pm, nonstop, 1h 32m
+💰 Cheapest, best
+🧡 Preferred airline
+✅ In policy
+
+3. **$477**
+B6248, JetBlue, Blue
+6:00 am – 7:35 am, nonstop, 1h 35m
+🌱 26% less CO₂
+✅ In policy
+
+4. **$500**
+AA1042, American Airlines, Main Cabin
+9:15 am – 10:40 am, nonstop, 1h 25m
+✅ In policy
+
+5. **$500**
+UA567, United, Economy
+11:30 am – 1:02 pm, nonstop, 1h 32m
+✅ In policy
+
+Does one of these look right? Select a flight, or let me know what to change.`},
+
+{c:"Flight Results",id:"4d",t:"Out-of-policy option",u:null,a:
+`All 3 are nonstop options on this route. I've included a First Class option since you've booked it before, but it's flagged out of policy.
+
+Step 1: Select the outbound flight (BOS → ORD Tue, Apr 14)
+
+1. **$332**
+DL1655, Delta, Main Cabin
+5:40 pm – 7:42 pm CT, nonstop, 3h 02m
+🧡 Preferred airline
+✅ In policy
+
+2. **$252**
+B6133, JetBlue, Blue
+6:00 am – 8:55 am CT, nonstop, 3h 55m
+💰 Lowest price
+✅ In policy
+
+3. **$850**
+DL766, Delta, First
+3:50 pm – 5:33 pm CT, nonstop, 3h 43m
+⚠️ Out of policy — cabin class exceeds limit
+
+Does one of these look right? Select a flight, or let me know what to change.`},
+
+{c:"Flight Results",id:"4e",t:"One-stop (no nonstops)",u:null,a:
+`No nonstop flights available from Boston to Las Vegas on Mon, Apr 14. I've picked the 3 shortest connections, all in policy. Option 3 is on Delta since that's your preferred airline.
+
+Step 1: Select the outbound flight (BOS → LAS Mon, Apr 14)
+
+1. **$297**
+WN 776 / WN 3867, Southwest, Basic
+10:45 am – 4:15 pm PT, 1 stop (MDW), 8h 30m
+💰 Lowest price
+🌱 3% less CO₂
+✅ In policy
+
+2. **$312**
+WN 1532 / WN 933, Southwest, Basic
+1:20 pm – 11:15 pm PT, 1 stop (BNA), 6h 55m
+✅ In policy
+
+3. **$345**
+DL1204 / DL587, Delta, Main Cabin
+7:00 am – 2:30 pm PT, 1 stop (ATL), 8h 30m
+🧡 Preferred airline
+✅ In policy
+
+Does one of these look right? Select a flight, or let me know what to change.`},
+
+{c:"Flight Results",id:"4f",t:"Filtered results",u:"Is there a morning Delta flight? My meeting is at 3",a:
+`I've found a few Delta flights that depart in the morning. All would get you to D.C. before your 3pm meeting with time to spare.
+
+Step 1: Select the outbound flight (BOS → DCA Tue, Feb 11)
+
+1. **$345**
+DL978, Delta, Main Cabin
+7:50 am – 9:22 am, nonstop, 1h 32m
+🧡 Preferred airline
+✅ In policy
+
+2. **$345**
+DL2104, Delta, Main Cabin
+9:15 am – 10:45 am, nonstop, 1h 30m
+🧡 Preferred airline
+✅ In policy
+
+3. **$520**
+DL890, Delta, Comfort+
+6:30 am – 8:05 am, nonstop, 1h 35m
+⚠️ Out of policy — cabin class exceeds limit
+
+Does one of these look right? Select a flight, or let me know what to change.`},
+
+// ─── FARE FAMILIES ───
+{c:"Fare Families",id:"5a",t:"Standard fare options",u:"2",a:
+`For the Delta 5:40 pm flight you selected, here are the available fares:
+
+**Basic Economy — $297**
+1 carry-on | Seat selection for a fee | No ticket changes
+No refund (flight credit, 6 months)
+
+**Main Cabin — $345**
+1 carry-on | Free seat selection | Free ticket changes
+Free same-day standby
+✅ In policy
+
+**Comfort+ — $520**
+1 carry-on | Extra legroom | Priority boarding | Free changes
+⚠️ Out of policy — cabin exceeds limit
+
+Select a fare to continue.`},
+
+{c:"Fare Families",id:"5b",t:"Southwest fare tiers",u:null,a:
+`For the Southwest 10:45 am flight, here are the fare options:
+
+**Basic — $297**
+1 carry-on | Seat selection for a fee | No ticket changes
+No refund (flight credit, 6 months)
+
+**Choice — $377**
+1 carry-on | Free seat selection | Free ticket changes
+Free same-day standby | Transferable flight credit (12 months)
+
+**Choice Preferred — $537**
+1 carry-on | Preferred seat selection | Free changes
+Free same-day standby | Refundable
+
+All fares are in policy. Select a fare to continue.`},
+
+// ─── HOTEL RESULTS ───
+{c:"Hotel Results",id:"6a",t:"Near office (3 options)",u:null,a:
+`Here are hotels near the **D.C. Downtown Office** (1000 Wilson Blvd) for Feb 11 – 13 (2 nights). All 3 are within walking distance, in policy, and include your Marriott preference.
+
+1. **San Francisco Marriott Union Square**
+**$1,338** / $446 nightly
+8.5(Very good), 0.2 mi from Notion SF office
+🧡 Preferred chain
+✅ In policy
+
+2. **Hilton San Francisco Union Square**
+**$1,330** / $446 nightly
+7.7(Good), 0.2 mi from Notion SF office
+🏷️ Corporate rate
+✅ In policy
+
+3. **Palace Hotel, a Luxury Collection Hotel, San Francisco**
+**$1,206** / $402 nightly
+7.5(Good), 0.2 mi from Notion SF office
+🧡 Company recommended
+✅ In policy
+
+Select a hotel, or let me know what to change.`},
+
+{c:"Hotel Results",id:"6b",t:"With out-of-policy option",u:null,a:
+`Here are hotels near the **Las Vegas Convention Center** for Apr 14 – 24 (10 nights). I've prioritized company recommended and in-policy options. The Venetian is closer to the venue but exceeds your nightly rate limit.
+
+1. **Embassy Suites by Hilton Las Vegas**
+**$3,099** / $274 nightly
+8.2(Very good), 1.2 mi from venue
+500 Bonus Points per stay
+✅ In policy
+
+2. **JW Marriott Las Vegas Resort & Spa**
+**$3,707** / $284 nightly
+8.6(Very good), Angel Park
+🏢 Company recommended
+✅ In policy
+
+3. **The Venetian Resort**
+**$4,190** / $349 nightly
+9.0(Excellent), 0.4 mi from venue
+⚠️ Out of policy — nightly rate exceeds $300 limit
+
+Select a hotel, or let me know what to change.`},
+
+{c:"Hotel Results",id:"6c",t:"Specific hotel unavailable",u:"I want the Hilton Chicago Downtown",a:
+`Unfortunately, the **Hilton Chicago Downtown** has no availability for Apr 14 – 18.
+
+Here are similar, in-policy alternatives nearby:
+
+1. **JW Marriott Chicago**
+**$1,136** / $284 nightly
+8.6, 0.3 mi from office
+🏢 Company recommended
+✅ In policy
+
+2. **Hyatt Regency Chicago**
+**$1,036** / $259 nightly
+8.4, 0.4 mi from office
+✅ In policy
+
+3. **Palmer House Hilton**
+**$1,096** / $274 nightly
+7.9, 0.5 mi from office
+✅ In policy
+
+Select an alternative, or let me know if you'd like to adjust your search.`},
+
+{c:"Hotel Results",id:"6d",t:"Preferred hotel out of policy",u:null,a:
+`Alex has previously stayed at the **Hilton Midtown**.
+
+However, this hotel is out of policy for May 6 – 9 due to nightly rate limits.
+
+Here are similar, in-policy alternatives near Times Square:
+
+1. **Westin Times Square**
+**$780** / $260 nightly
+8.1, 0.3 mi from office
+✅ In policy
+
+2. **Courtyard by Marriott Times Square**
+**$735** / $245 nightly
+7.8, 0.2 mi from office
+🏷️ Negotiated rate
+✅ In policy
+
+3. **Sheraton New York Times Square**
+**$810** / $270 nightly
+7.5, 0.4 mi from office
+🧡 Preferred chain
+✅ In policy
+
+Select an alternative, or let me know what to change.`},
+
+// ─── ROOM RATES ───
+{c:"Room Rates",id:"7a",t:"Room options with rate types",u:"1",a:
+`Here are room options at the **Marriott D.C. Downtown** for Feb 11 – 13:
+
+1. **Standard room, 1 Queen size bed**
+**$1,338** / $446 nightly
+Flexible Rate Guest Room, 1 King, Mini fridge, 270sqft/24sqm, Wireless internet, for a fee
+Pay at hotel, Free cancellation until Jan 31, 2026 11:59PM
+🏷️ Negotiated rate
+✅ In policy
+
+2. **Standard room, 1 King size bed**
+**$1,338** / $446 nightly
+Flexible Rate Guest Room, 1 King, Mini fridge, 270sqft/24sqm, Wireless internet, for a fee
+Pay at hotel, $199 charge for changes or no-shows
+🏷️ Government rate
+✅ In policy
+
+3. **2 Double beds**
+**$1,338** / $446 nightly
+Flexible Rate Guest Room, 1 King, Mini fridge, 270sqft/24sqm, Wireless internet, for a fee
+Pay at hotel, Non-refundable
+🏷️ Project rate
+❗ Price out of policy
+
+Select a room, or let me know if you need a different type.`},
+
+{c:"Room Rates",id:"7b",t:"Room pre-selected from profile",u:null,a:
+`The Marriott D.C. Downtown has your preferred king room available at the negotiated rate of $446/night.
+
+**Standard room, 1 King size bed**
+**$892** / $446 nightly
+Pay at hotel, Free cancellation until Feb 9
+🏷️ Negotiated rate
+✅ In policy
+
+I've added this to your trip. Let me know if you'd prefer a different room type.`},
+
+// ─── CAR RESULTS ───
+{c:"Car Results",id:"8a",t:"Car rental options",u:null,a:
+`Here are rental cars at DCA for Feb 11 – 13 (2 days). I've matched your pickup/dropoff to your flight times and included Enterprise first since you've rented with them before.
+
+1. **$166 total**
+Enterprise, Standard Rental
+Pick-up: Tue, Feb 11, 5:00 pm
+Drop-off: Thu, Feb 13, 1:00 pm
+Pick-up location: Enterprise, DCA, off-airport shuttle, 2600 Richmond Hwy, Arlington, VA
+🚗 Booked in Jan 2025
+✅ In policy
+
+2. **$199 total**
+Avis, Standard Rental
+Pick-up: Tue, Feb 11, 5:00 pm
+Drop-off: Thu, Feb 13, 1:00 pm
+✅ In policy
+
+3. **$243 total**
+Budget, Toyota Camry or similar (Full-size)
+Pick-up: Tue, Feb 11, 5:00 pm
+Drop-off: Thu, Feb 13, 1:00 pm
+✅ In policy
+
+Does one of these look right? Select a rental car, or let me know what to change.`},
+
+// ─── GROUND TRANSFER ───
+{c:"Ground Transfer",id:"9a",t:"Transfer options",u:null,a:
+`Here are transfer options from DCA to your hotel on Feb 11. Pick-up time is set to 5:30 pm based on your 4:59 pm arrival. All 3 are in policy.
+
+1. **$68**
+EmpireCLS, Sedan (up to 3 passengers)
+Estimated travel time: 25 min
+✅ In policy
+
+2. **$89**
+EmpireCLS, SUV (up to 5 passengers)
+Estimated travel time: 25 min
+✅ In policy
+
+3. **$32**
+Lyft, Shared Ride
+Estimated travel time: 30 min
+💰 Lowest price
+✅ In policy
+
+Pick-up: DCA Airport, Feb 11 at 5:30 pm (based on your flight arrival)
+
+Select an option, or let me know if you need a different pick-up time.`},
+
+{c:"Ground Transfer",id:"9b",t:"Via link (current implementation)",u:null,a:
+`To see the ground transfer results, please check the link:
+https://example.com/transfer/DCA/hotel/2026-02-11-17:30
+
+While you are reviewing the transfer options, do you want to add other items to your Trip?
+
+Reply 1 to search for hotels in Washington D.C. (Feb 11 – 13)
+Reply 2 to search for cars in Washington D.C. (Feb 11 – 13)`},
+
+// ─── CROSS-SELL ───
+{c:"Cross-sell",id:"10a",t:"After flight added",u:"Confirm",a:
+`✅ Flight added to your D.C. trip.
+
+In the meanwhile, do you want to add other items to your Trip?
+
+Reply 1 to search for hotels in Washington D.C. (Feb 11 – 13)
+Reply 2 to search for cars in Washington D.C. (Feb 11 – 13)
+Reply 3 to search for ground transfers in Washington D.C.`},
+
+{c:"Cross-sell",id:"10b",t:"After hotel added",u:"Confirm",a:
+`✅ Hotel added to your D.C. trip.
+
+Do you want to add other items to your Trip?
+
+Reply 1 to search for cars in Washington D.C. (Feb 11 – 13)
+Reply 2 to search for ground transfers in Washington D.C.`},
+
+{c:"Cross-sell",id:"10c",t:"GT legs prompt",u:null,a:
+`Would you like to add ground transfers? Based on your flights, here are the legs I can search:
+
+Reply 1 to search for transfer from DCA to hotel (Feb 11, ~5:30 pm arrival)
+Reply 2 to search for transfer from hotel to DCA (Feb 13, depart for 2:30 pm flight)
+Reply 3 to search both
+Reply "skip" if you don't need transfers`},
+
+{c:"Cross-sell",id:"10d",t:"Auto-continue (multi-vertical)",u:null,a:
+`✅ Outbound flight added. Now searching for return flights from DCA to BOS on Thu, Feb 13...`},
+
+{c:"Cross-sell",id:"10e",t:"Arranger cross-sell",u:null,a:
+`✅ Flight added to Alex Morgan's D.C. trip.
+
+Do you want to add other items to Alex's Trip?
+
+Reply 1 to search for hotels in Washington D.C. (Feb 11 – 13)
+Reply 2 to search for cars in Washington D.C. (Feb 11 – 13)
+Reply 3 to search for ground transfers in Washington D.C.`},
+
+// ─── CONFIRMATION ───
+{c:"Confirmation",id:"11a",t:"Flight confirmed + links",u:"Confirm",a:
+`✅ The flight below has been added to your Trip.
+
+American Airlines, Main Cabin
+AA2536, BOS → DCA Tue, Feb 11 · 3:35 pm – 4:59 pm, nonstop, 1h 24m
+AA2120, DCA → BOS Thu, Feb 13 · 2:30 pm – 3:41 pm, nonstop, 1h 11m
+✈️ Booked in Jan 2025
+✅ In policy
+
+Review trip: https://example.com/trips/DC-FEB
+Book now: https://example.com/cart/DC-FEB
+
+In the meanwhile, do you want to add other items to your Trip?
+
+Reply 1 to search for hotels in Washington D.C. (Feb 11 – 13)
+Reply 2 to search for cars in Washington D.C. (Feb 11 – 13)
+Reply 3 to search for ground transfers in Washington D.C.`},
+
+{c:"Confirmation",id:"11b",t:"Hotel confirmed",u:"Confirm",a:
+`✅ The hotel below has been added to your Trip.
+
+$446 nightly / $892 total
+Marriott D.C. Downtown, Standard Room, 1 King
+🏷️ Negotiated rate
+✅ In policy
+
+Review trip: https://example.com/trips/DC-FEB
+Book now: https://example.com/cart/DC-FEB
+
+Do you want to add other items to your Trip?
+
+Reply 1 to search for cars in Washington D.C. (Feb 11 – 13)
+Reply 2 to search for ground transfers in Washington D.C.`},
+
+{c:"Confirmation",id:"11c",t:"GT confirmed",u:"1",a:
+`✅ The ground transfer has been added to your Trip.
+
+EmpireCLS, Sedan
+DCA → Marriott D.C. Downtown
+Feb 11, 5:30 pm pick-up | $68
+✅ In policy
+
+Review trip: https://example.com/trips/DC-FEB
+Book now: https://example.com/cart/DC-FEB`},
+
+// ─── TRIP SUMMARY ───
+{c:"Trip Summary",id:"12a",t:"Full trip (flights + hotel + GT)",u:"Show me my trip",a:
+`**Your Trip: Washington D.C.**
+Feb 11 – 13 | Booked for: Alex Morgan
+
+✈️ **Outbound**
+AA2536, American Airlines, Main Cabin
+Tue, Feb 11 · 3:35 pm – 4:59 pm · Nonstop
+BOS → DCA | $317
+
+✈️ **Return**
+AA2120, American Airlines, Main Cabin
+Thu, Feb 13 · 2:30 pm – 3:41 pm · Nonstop
+DCA → BOS | $317
+
+🏨 **Hotel**
+Marriott D.C. Downtown, Standard Room, 1 King
+Feb 11 – 13 (2 nights) | $446 nightly / $892 total
+🏷️ Negotiated rate
+
+🚗 **Transfer: Airport → Hotel**
+EmpireCLS, Sedan
+Feb 11, 5:30 pm | DCA → Marriott D.C. Downtown | $68
+
+🚗 **Transfer: Hotel → Airport**
+EmpireCLS, Sedan
+Feb 13, 12:00 pm | Marriott D.C. Downtown → DCA | $68
+
+Flights: $634
+Hotel: $892
+Transfers: $136
+**Total: $1,662**
+✅ All items in policy
+
+Review trip: https://example.com/trips/DC-FEB
+Book now: https://example.com/cart/DC-FEB
+
+Want to make any changes, or ready to proceed to checkout?`},
+
+{c:"Trip Summary",id:"12b",t:"Date-based itinerary",u:"Show me the itinerary by date",a:
+`Review your Trip: https://example.com/trips/SF-FEB
+
+The itinerary of your San Francisco Trip:
+
+**Feb 10**
+✈️ 9:14 am – 1:00 pm BOS-SFO, DL1655, Delta, Main Cabin
+🚖 2:00 pm pick up at SFO, Carey, Sedan
+🏨 4:00 pm check in at San Francisco Marriott Union Square, Standard Room
+
+**Feb 12**
+🏨 12:00 pm check out at San Francisco Marriott Union Square
+🚖 2:00 pm pick up at hotel, Carey, Sedan
+✈️ 6:55 pm – 3:40 am SFO-BOS, DL921, Delta, Main Cabin
+
+Let me know if you want more details about your flight, hotel, or ground transfer bookings. You can ask things like "Show me the transfer pickup instructions."`},
+
+{c:"Trip Summary",id:"12c",t:"Flights only",u:null,a:
+`**Your Trip: Washington D.C.**
+Feb 11 – 13
+
+✈️ **Outbound**
+AA2536, American Airlines, Main Cabin
+Tue, Feb 11 · 3:35 pm – 4:59 pm · Nonstop
+BOS → DCA | $317
+
+✈️ **Return**
+AA2120, American Airlines, Main Cabin
+Thu, Feb 13 · 2:30 pm – 3:41 pm · Nonstop
+DCA → BOS | $317
+
+**Total: $634**
+
+Review trip: https://example.com/trips/DC-FEB
+Book now: https://example.com/cart/DC-FEB`},
+
+// ─── ERROR / RECOVERY ───
+{c:"Error / Recovery",id:"13a",t:"Flight no longer available",u:null,a:
+`⚠️ Unfortunately, the Delta DL2890 (5:40 pm BOS → DCA) is no longer available for Feb 11.
+
+Here's the next best alternative:
+
+**$360**
+DL1702, Delta, Main Cabin
+6:10 pm – 7:35 pm, nonstop, 1h 25m
+🧡 Preferred airline
+✅ In policy
+
+Would you like to select this flight, or should I show more options?`},
+
+{c:"Error / Recovery",id:"13b",t:"No results at all",u:null,a:
+`⚠️ No results for **BOS → LAS on Apr 14**
+
+I know you're looking for flights from Boston to Las Vegas on April 14, but here's why nothing came up:
+
+**Limited routes:** No airlines operate nonstop BOS-LAS on Mondays
+**Sold out:** The few connecting options for this date are fully booked
+
+Alternatively, I could:
+
+**Try nearby dates:** Search Apr 13 or Apr 15 instead
+**Try nearby airports:** Search from PVD (Providence) or BDL (Hartford)
+**Broaden the search:** Include 2-stop connections
+
+Let me know which path works for you.`},
+
+{c:"Error / Recovery",id:"13c",t:"Timeout / price refresh",u:"1",a:
+`⚠️ The results are no longer available because hotels update their pricing frequently based on real-time demand.
+
+Let me refresh the results for you now...
+
+_Updating prices..._`},
+
+{c:"Error / Recovery",id:"13d",t:"Off-topic question",u:"What's the weather in DC?",a:
+`I'm set up to help with travel booking, so I can't help with that one.
+
+Let's get back to your trip. Where are you headed next?`},
+
+{c:"Error / Recovery",id:"13e",t:"Date change mid-conversation",u:"Actually make it Feb 18-20 instead",a:
+`Got it, moving the trip to **Feb 18 – 20** instead.
+
+⚠️ The AA2536 flight you selected is not available on Feb 18. I'll search for new options now.
+
+The Marriott D.C. Downtown is still available at $446/night for the updated dates.
+
+_Searching for flights BOS → DCA on Feb 18..._`},
+
+{c:"Error / Recovery",id:"13f",t:"Arranger switches traveler",u:"Actually book this for Jane instead",a:
+`I'm not able to change the traveler within this conversation. To book for a different person, please start a new session.
+
+Want to continue planning Alex Morgan's D.C. trip?`},
+
+{c:"Error / Recovery",id:"13g",t:"Hotel no longer available",u:null,a:
+`⚠️ The Marriott D.C. Downtown is no longer available for Feb 11 – 13 at the listed rate.
+
+Here are similar, in-policy alternatives:
+
+1. **Westin Washington D.C. Downtown**
+**$850** / $425 nightly
+8.3, 0.3 mi from office
+✅ In policy
+
+2. **Courtyard by Marriott D.C.**
+**$778** / $389 nightly
+7.8, 0.5 mi from office
+🏷️ Negotiated rate
+✅ In policy
+
+Select an alternative, or let me know how to adjust the search.`},
+
+{c:"Error / Recovery",id:"13h",t:"Inbound sold out (arranger)",u:null,a:
+`✅ I have added the outbound flight to Alex Morgan's Trip.
+
+⚠️ Unfortunately the inbound flight (DCA → BOS Thu, Feb 13) for Delta First is already sold out.
+
+Here's the next best option in Main Cabin:
+
+**$317**
+DL3300, Delta, Main Cabin
+4:15 pm – 5:30 pm, nonstop, 1h 15m
+✅ In policy
+
+Would you like to select this, or see more options?`},
+
+
+// ─── NEW SCENARIOS (from Mar 5 sprint review) ───
+{c:"Hotel Results",id:"6e",t:"Previously booked, no longer preferred",u:null,a:
+`Here are hotels near the **Chicago Loop Office** for Apr 14 – 18 (4 nights). I've sorted by company preferred hotels first, then by distance from your office.
+
+1. **JW Marriott Chicago**
+**$1,136** / $284 nightly
+8.6, 0.3 mi from office
+🏢 Company recommended
+✅ In policy
+
+2. **Hyatt Regency Chicago**
+**$1,096** / $274 nightly
+8.4, 0.4 mi from office
+✅ In policy
+
+3. **Palmer House Hilton**
+**$1,036** / $259 nightly
+7.9, 0.5 mi from office
+✅ In policy
+
+I see you've previously stayed at the **Hilton Chicago Downtown**, but it's no longer a company preferred hotel. It's still available at $302/night if you'd like me to add it as an option.
+
+Select a hotel, or let me know what to change.`},
+
+{c:"Room Rates",id:"7c",t:"Same-day booking (past cancellation window)",u:null,a:
+`Here are room options at the **Marriott D.C. Downtown** for tonight:
+
+1. **Standard room, 1 Queen size bed**
+**$446** / $446 nightly
+Flexible Rate Guest Room, 1 Queen, Mini fridge, 270sqft/24sqm, Wireless internet, for a fee
+Pay at hotel
+⚠️ Free cancellation window has passed. Full penalty applies if cancelled.
+🏷️ Negotiated rate
+✅ In policy
+
+2. **Standard room, 1 King size bed**
+**$446** / $446 nightly
+Flexible Rate Guest Room, 1 King, Mini fridge, 270sqft/24sqm, Wireless internet, for a fee
+Pay at hotel
+⚠️ Free cancellation window has passed. Full penalty applies if cancelled.
+🏷️ Government rate
+✅ In policy
+
+This is a same-day booking. Both options are past the free cancellation window. Select a room to continue.`},
+
+{c:"Hotel Results",id:"6f",t:"No office found (city center fallback)",u:null,a:
+`I couldn't find a company office in Nashville. Searching for hotels near the city center instead.
+
+Here are hotels in **downtown Nashville** for Mar 10 – 12 (2 nights):
+
+1. **Marriott Nashville Downtown**
+**$578** / $289 nightly
+8.4, city center
+🧡 Preferred chain
+✅ In policy
+
+2. **Hilton Nashville Downtown**
+**$536** / $268 nightly
+8.1, city center
+✅ In policy
+
+3. **Courtyard by Marriott Nashville**
+**$470** / $235 nightly
+7.7, city center
+🏷️ Corporate rate
+✅ In policy
+
+If you have a specific address or meeting location, let me know and I'll refine the search.`},
+
+{c:"Clarification",id:"2h",t:"Multi-city sequential handling",u:"I need to go to New York May 6-9 then Boston May 13-15. Book flights and hotels for both.",a:
+`Got it, two separate trips:
+
+1. **New York** — May 6 – 9 (Flight + Hotel)
+2. **Boston** — May 13 – 15 (Flight + Hotel)
+
+Let's start with your New York leg first. Once that's fully booked, I'll move to Boston.
+
+_Searching for flights BOS → JFK on May 6..._`},
+
+{c:"Confirmation",id:"11d",t:"Fixed preference saved",u:"Always suggest nonstop Delta for me when available",a:
+`Got it. I'll prioritize nonstop Delta flights for your future searches when available. If Delta doesn't have a nonstop option on a route, I'll still show the best alternatives.
+
+You can update this anytime by telling me to change your preferences.
+
+Anything else, or want to start planning a trip?`},
+
+];
+
+// ─── RENDER ───
+const nav=document.getElementById('nav');
+const cw=document.getElementById('cw');
+const hT=document.getElementById('hTitle');
+const hS=document.getElementById('hSub');
+const pB=document.getElementById('pBtn');
+const nB=document.getElementById('nBtn');
+let ci=-1;
+
+function md(t){
+  return t
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/_(.+?)_/g,'<em>$1</em>')
+    .replace(/(https?:\/\/[^\s<]+)/g,'<a href="#">$1</a>');
+}
+
+function build(){
+  let cc='';
+  D.forEach((s,i)=>{
+    if(s.c!==cc){
+      cc=s.c;
+      const cat=document.createElement('div');
+      cat.className='nav-cat';
+      cat.textContent=cc;
+      nav.appendChild(cat);
+    }
+    const el=document.createElement('div');
+    el.className='nav-item';
+    el.dataset.i=i;
+    el.innerHTML=`<span class="n">${s.id}</span>${s.t}`;
+    el.onclick=()=>sel(i);
+    nav.appendChild(el);
+  });
+}
+
+function sel(i){
+  ci=i;
+  const s=D[i];
+  document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));
+  const a=document.querySelector(`.nav-item[data-i="${i}"]`);
+  if(a){a.classList.add('active');a.scrollIntoView({block:'nearest',behavior:'smooth'});}
+  hT.textContent=`${s.id}. ${s.t}`;
+  hS.textContent=s.c;
+  pB.disabled=i===0;
+  nB.disabled=i===D.length-1;
+  let h='<div class="chat">';
+  h+=`<div class="tag">${s.c} — ${s.id}</div>`;
+  if(s.u) h+=`<div class="u"><span>${s.u}</span></div>`;
+  h+=`<div class="ai"><div class="av">✦</div><div class="ai-text">${md(s.a)}</div></div></div>`;
+  cw.innerHTML=h;
+  cw.scrollTop=0;
+}
+
+function go(d){const n=ci+d;if(n>=0&&n<D.length)sel(n);}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowDown'||e.key==='ArrowRight'){e.preventDefault();go(1);}
+  if(e.key==='ArrowUp'||e.key==='ArrowLeft'){e.preventDefault();go(-1);}
+});
+
+build();
+</script>
+</body>
+</html>
